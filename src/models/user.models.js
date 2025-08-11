@@ -2,7 +2,7 @@
   id string pk
   username string
   email string
-  fullName string
+  fullname string
   avatar string
   coverImage string
   watchHistory ObjectId[] videos
@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
       lowerCase: true,
       trim: true,
     },
-    fullname: {
+    fullName: {
       type: String,
       required: true,
       unique: true,
@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema(
       type: String, // url
       required: true,
     },
-    coverimage: {
+    coverImage: {
       type: String,
     },
     watchHistory: [

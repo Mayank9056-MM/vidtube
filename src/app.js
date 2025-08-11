@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import logger from "./logger.js";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -28,6 +29,8 @@ app.use(
 
 app.use(express.static("public"));
 
+app.use(cookieParser());
+
 // logger setup
 const morganFormat = ":method :url :status :response-time ms";
 
@@ -47,13 +50,15 @@ app.use(
   })
 );
 
-app.use(cookieParser());
-
 // import routes
 import healthCheckRouter from "./routes/healthcheck.routes.js";
-import cookieParser from "cookie-parser";
+import userRouter from "./routes/user.routes.js";
+import { errorHandler } from "./middlewares/error.middlerware.js";
 
 // routes
 app.use("/api/v1/healthcheck", healthCheckRouter);
+app.use("/api/v1/users", userRouter);
+
+app.use(errorHandler)
 
 export { app };
