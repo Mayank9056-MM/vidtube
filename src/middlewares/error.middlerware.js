@@ -18,7 +18,6 @@ const errorHandler = (err, req, res, next) => {
     };
     return res.status(error.statusCode).json(response);
   }
-
 };
 
 export { errorHandler };
