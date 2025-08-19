@@ -1,0 +1,33 @@
+import jwt from "jsonwebtoken";
+import { ApiError } from "../utils/ApiError";
+import { User } from "../models/user.models";
+
+export const verifyAuth = async (req, _, next) => {
+  const accessToken =
+    req.cookies.accessToken ||
+    req.header("Authorization")?.replace("Bearer ", ""); // if sent from header/mobile
+
+  if (!accessToken) {
+    throw new ApiError(401, "Unathorized");
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      accessToken,
+      process.env.ACCESS_TOKEN_SECRET
+    );
+
+    const user = await User.findById(decodedToken?._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!user) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid access token");
+  }
+};
