@@ -89,4 +89,122 @@ const publishVideo = asyncHandler(async (req, res) => {
   }
 });
 
-export { publishVideo };
+const getVideoById = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!videoId) {
+    throw new ApiError(404, "video id not found");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  res.status(200).json(new ApiResponse(200, video, "video fetch successfully"));
+});
+
+const deletevideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!videoId) {
+    throw new ApiError(400, "Video ID is required");
+  }
+
+  const deleteVideo = await Video.findByIdAndDelete(videoId);
+
+  if (!deleteVideo) {
+    throw new ApiError(404, "video with id not found");
+  }
+
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(204, { video: deleteVideo }, "video deleted successfully")
+    );
+});
+
+const updateVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  const { title, description } = req.body;
+
+  if (!videoId) {
+    throw new ApiError(400, "Video id not found");
+  }
+
+  if (!(title && description)) {
+    throw new ApiError(404, "title and desciption is required");
+  }
+
+  let thumbnailLoaclPath;
+
+  if (req.files?.path) {
+    thumbnailLoaclPath = req.files.path;
+  }
+  let thumbnail;
+  if (thumbnailLoaclPath) {
+    thumbnail = await uploadOnCloudinary(thumbnailLoaclPath);
+  }
+
+  const video = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      $set: {
+        title: title.trim(),
+        description,
+        ...(thumbnail?.url && { thumbnail: thumbnail.url }),
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, video, "video update successfully"));
+});
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!videoId) {
+    throw new ApiError(400, "video id not found");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(400, "video not found");
+  }
+
+  const updateVideo = await Video.findByIdAndUpdate(
+    videoId,
+    {
+      $set: {
+        isPublished: !video.isPublished,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, updateVideo, "Publish status changed successfully")
+    );
+});
+
+const getAllVideos = asyncHandler(async (req, res) => {});
+
+export {
+  publishVideo,
+  getVideoById,
+  deletevideo,
+  updateVideo,
+  togglePublishStatus,
+  getAllVideos
+};

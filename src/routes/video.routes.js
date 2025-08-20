@@ -1,7 +1,13 @@
 import express from "express";
 import { verifyAuth } from "../middlewares/verifyAuth.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import { publishVideo } from "../controllers/video.controllers.js";
+import {
+  deletevideo,
+  getVideoById,
+  publishVideo,
+  togglePublishStatus,
+  updateVideo,
+} from "../controllers/video.controllers.js";
 
 const videoRouter = express.Router();
 
@@ -19,5 +25,14 @@ videoRouter.route("/upload-video").post(
   ]),
   publishVideo
 );
+
+videoRouter.route("/get-video/:videoId").get(verifyAuth, getVideoById);
+videoRouter.route("/delete-video/:videoId").delete(verifyAuth, deletevideo);
+videoRouter
+  .route("/update-video/:videoId")
+  .patch(verifyAuth, upload.single("thumbnail"), updateVideo);
+videoRouter
+  .route("/toggle-video/:videoId")
+  .patch(verifyAuth, togglePublishStatus);
 
 export default videoRouter;
