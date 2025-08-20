@@ -46,6 +46,8 @@ const registerUser = asyncHandler(async (req, res) => {
   coverImage string
    password string
     */
+  console.log("Headers:", req.headers["content-type"]);
+  console.log("Body:", req.body);
   try {
     const { username, email, fullName, password } = req.body;
 
@@ -67,7 +69,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const avatarLocalPath = req.files?.avatar[0]?.path; // from multer the name avatar from route
 
-    const coverImageLoalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+    if (
+      req.files &&
+      Array.isArray(req.files.coverImage) &&
+      req.files.coverImage.length > 0
+    ) {
+      coverImageLocalPath = req.files.coverImage[0].path;
+    }
 
     if (!avatarLocalPath) {
       throw new ApiError(400, "Avatar file is missing");
@@ -86,7 +95,7 @@ const registerUser = asyncHandler(async (req, res) => {
     let coverImage;
 
     try {
-      coverImage = await uploadOnCloudinary(coverImageLoalPath);
+      coverImage = await uploadOnCloudinary(coverImageLocalPath);
       console.log("Upload on cloudinary avatar", coverImage);
     } catch (error) {
       console.log("Error uploading coverImage", error);
@@ -132,7 +141,8 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-  console.log(req.body);
+  console.log("Headers:", req.headers["content-type"]);
+  console.log("Body:", req.body);
 
   const { username, email, password } = req.body;
 
