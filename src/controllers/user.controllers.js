@@ -46,6 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
   coverImage string
    password string
     */
+  console.log("Files:", req.files.avatar[0].path);
   console.log("Headers:", req.headers["content-type"]);
   console.log("Body:", req.body);
   try {

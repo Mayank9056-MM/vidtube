@@ -265,5 +265,4 @@ export {
   updateVideo,
   togglePublishStatus,
   getAllVideos,
-  getAllVideos
 };
