@@ -198,7 +198,65 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     );
 });
 
-const getAllVideos = asyncHandler(async (req, res) => {});
+const getAllVideos = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
+  let filter = {};
+
+  if (query) {
+    filter.$or = [
+      {
+        title: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  // sorting
+  const sort = {};
+  if (sortBy) {
+    sort[sortBy] = sortType === "asc" ? 1 : -1;
+  } else {
+    sort.createdAt = -1; // newest first
+  }
+
+  // pagination
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const allVideo = await Video.find(filter).sort(sort).skip(skip).limit(limit);
+  const total = await Video.countDocuments(filter);
+
+  let userVideos = null;
+
+  if (userId) {
+    userVideos = await Video.find({ user: userId });
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        allVideo,
+        userVideos,
+        pagination: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+      "All videos fetched successfully"
+    )
+  );
+});
 
 export {
   publishVideo,
@@ -206,5 +264,6 @@ export {
   deletevideo,
   updateVideo,
   togglePublishStatus,
+  getAllVideos,
   getAllVideos
 };

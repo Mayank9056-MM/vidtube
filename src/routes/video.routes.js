@@ -3,6 +3,7 @@ import { verifyAuth } from "../middlewares/verifyAuth.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
   deletevideo,
+  getAllVideos,
   getVideoById,
   publishVideo,
   togglePublishStatus,
@@ -34,5 +35,6 @@ videoRouter
 videoRouter
   .route("/toggle-video/:videoId")
   .patch(verifyAuth, togglePublishStatus);
+videoRouter.route("/all-videos").get(verifyAuth, getAllVideos);
 
 export default videoRouter;
