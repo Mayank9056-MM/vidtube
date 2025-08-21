@@ -44,3 +44,19 @@
     "success": true
 }
 ```
+3. created tweet 
+```
+ {
+    "statusCode": 201,
+    "data": {
+        "_id": "68a74713e579ccfb02cb90ae",
+        "owner": "68a703497c1b581fa317bdcd",
+        "content": "Hi this is the first tweet of my life and I am tweet this on my own app that's different feelinng so thank you",
+        "createdAt": "2025-08-21T16:19:31.316Z",
+        "updatedAt": "2025-08-21T16:19:31.316Z",
+        "__v": 0
+    },
+    "message": "tweet created successfully",
+    "success": true
+}
+```
