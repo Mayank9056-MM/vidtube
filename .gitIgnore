@@ -101,6 +101,9 @@ dist
 # vuepress build output
 .vuepress/dist
 
+# personal 
+notes.md
+
 # vuepress v2.x temp and cache directory
 .temp
 

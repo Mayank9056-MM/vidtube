@@ -1,5 +1,6 @@
 # login jack 
 
+1.user profile
 ```{
     "statusCode": 200,
     "data": {
@@ -21,3 +22,25 @@
     "message": "User logged in successfully",
     "success": true
 }```
+
+2. videos
+```{
+    "statusCode": 201,
+    "data": {
+        "_id": "68a72690f6a2ba4f7ef12c23",
+        "owner": "68a703497c1b581fa317bdcd",
+        "videoFile": "http://res.cloudinary.com/dp7fychwy/video/upload/v1755784840/e5fquamk6wpdnqcf3v4b.mp4",
+        "thumbnail": "http://res.cloudinary.com/dp7fychwy/image/upload/v1755784849/h9pcod5rapxepr1utvo9.jpg",
+        "title": "mountain",
+        "description": "this a mountain video",
+        "views": 0,
+        "duration": 8.25,
+        "isPublished": true,
+        "createdAt": "2025-08-21T14:00:48.858Z",
+        "updatedAt": "2025-08-21T14:00:48.858Z",
+        "__v": 0
+    },
+    "message": "video upload successfully on db",
+    "success": true
+}
+```
