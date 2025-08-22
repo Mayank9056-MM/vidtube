@@ -60,3 +60,20 @@
     "success": true
 }
 ```
+4. created comment
+```
+ {
+    "statusCode": 200,
+    "data": {
+        "video": "68a72690f6a2ba4f7ef12c23",
+        "owner": "68a703497c1b581fa317bdcd",
+        "content": "I like your video",
+        "_id": "68a817a7b067bb7af7327be9",
+        "createdAt": "2025-08-22T07:09:27.099Z",
+        "updatedAt": "2025-08-22T07:09:27.099Z",
+        "__v": 0
+    },
+    "message": "comment created successfully",
+    "success": true
+}
+```
