@@ -4,7 +4,7 @@ import {
   getSubscribedChannels,
   getUserChannelSubscribers,
   toggleSubscription,
-} from "../controllers/subscription.controllers";
+} from "../controllers/subscription.controllers.js";
 
 const susbscriptionRouter = express.Router();
 

@@ -46,9 +46,11 @@ const registerUser = asyncHandler(async (req, res) => {
   coverImage string
    password string
     */
-  console.log("Files:", req.files.avatar[0].path);
-  console.log("Headers:", req.headers["content-type"]);
-  console.log("Body:", req.body);
+  console.log("Files:", req.files);
+
+  let avatar;
+  let coverImage;
+
   try {
     const { username, email, fullName, password } = req.body;
 
@@ -83,8 +85,6 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new ApiError(400, "Avatar file is missing");
     }
 
-    let avatar;
-
     try {
       avatar = await uploadOnCloudinary(avatarLocalPath);
       console.log("Upload on cloudinary avatar", avatar);
@@ -92,8 +92,6 @@ const registerUser = asyncHandler(async (req, res) => {
       console.log("Error uploading avatar", error);
       throw new ApiError(500, "Failed to upload avatar image");
     }
-
-    let coverImage;
 
     try {
       coverImage = await uploadOnCloudinary(coverImageLocalPath);
