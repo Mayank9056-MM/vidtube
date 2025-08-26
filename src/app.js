@@ -58,6 +58,7 @@ import videoRouter from "./routes/video.routes.js";
 import tweetRouter from "./routes/tweet.routes.js";
 import commentRouter from "./routes/comment.routes.js";
 import susbscriptionRouter from "./routes/subscription.routes.js";
+import playlistRouter from "./routes/playlist.routes.js";
 
 // routes
 app.use("/api/v1/healthcheck", healthCheckRouter);
@@ -65,7 +66,8 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/comments", commentRouter);
-app.use("/api/v1/subscription", susbscriptionRouter);
+app.use("/api/v1/subscriptions", susbscriptionRouter);
+app.use("/api/v1/playlists",playlistRouter)
 
 app.use(errorHandler);
 
