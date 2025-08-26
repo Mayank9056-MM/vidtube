@@ -154,3 +154,25 @@
     "success": true
 }
 ```
+8. create playlist
+```
+  {
+    "statusCode": 201,
+    "data": {
+        "_id": "68adddd0594f146e9f6eec08",
+        "owner": {
+            "_id": "68a703497c1b581fa317bdcd",
+            "username": "jack",
+            "email": "spiderman@gamil.com"
+        },
+        "videos": [],
+        "name": "gaming videos",
+        "description": "This playlist is for gaming videos",
+        "createdAt": "2025-08-26T16:16:16.201Z",
+        "updatedAt": "2025-08-26T16:16:16.201Z",
+        "__v": 0
+    },
+    "message": "Playlist created successfully",
+    "success": true
+}
+```
