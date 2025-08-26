@@ -16,7 +16,6 @@ import mongoose from "mongoose";
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
-
     if (!user) {
       throw new ApiError(400, "user not found please register");
     }
@@ -209,9 +208,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-
     const user = await User.findById(decodedToken?._id);
-
     if (!user) {
       throw new ApiError(403, "Invalid refresh token");
     }
@@ -240,6 +237,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
+    console.log(error.message);
     throw new ApiError(
       401,
       "something went wrong while refreshing access token"
