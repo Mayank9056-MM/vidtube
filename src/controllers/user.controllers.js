@@ -47,8 +47,6 @@ const registerUser = asyncHandler(async (req, res) => {
   coverImage string
    password string
     */
-  console.log("Files:", req.files);
-
   let avatar;
   let coverImage;
 
@@ -73,15 +71,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const avatarLocalPath = req.files?.avatar[0]?.path; // from multer the name avatar from route
 
-    let coverImageLocalPath;
-    if (
-      req.files &&
-      Array.isArray(req.files.coverImage) &&
-      req.files.coverImage.length > 0
-    ) {
-      coverImageLocalPath = req.files.coverImage[0].path;
-    }
-
     if (!avatarLocalPath) {
       throw new ApiError(400, "Avatar file is missing");
     }
@@ -94,12 +83,20 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new ApiError(500, "Failed to upload avatar image");
     }
 
-    try {
-      coverImage = await uploadOnCloudinary(coverImageLocalPath);
-      console.log("Upload on cloudinary avatar", coverImage);
-    } catch (error) {
-      console.log("Error uploading coverImage", error);
-      throw new ApiError(500, "Failed to upload coverImage image");
+    let coverImageLocalPath;
+    if (
+      req.files &&
+      Array.isArray(req.files.coverImage) &&
+      req.files.coverImage.length > 0
+    ) {
+      coverImageLocalPath = req.files.coverImage[0].path;
+      try {
+        coverImage = await uploadOnCloudinary(coverImageLocalPath);
+        console.log("Upload on cloudinary coverImage", coverImage);
+      } catch (error) {
+        console.log("Error uploading coverImage", error);
+        throw new ApiError(500, "Failed to upload coverImage image");
+      }
     }
 
     const user = await User.create({
@@ -123,7 +120,7 @@ const registerUser = asyncHandler(async (req, res) => {
       .status(201)
       .json(new ApiResponse(201, createdUser, "User registered successfully"));
   } catch (error) {
-    console.log("User creation failed");
+    console.log("User creation failed", error);
 
     if (avatar) {
       await deleteFromCloudinary(avatar.public_id);
@@ -388,7 +385,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "username is required");
   }
 
-  const channel = User.aggregate([
+  const channel = await User.aggregate([
     {
       $match: {
         username: username?.toLowerCase(),
@@ -398,7 +395,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       $lookup: {
         from: "subscriptions",
         localField: "_id",
-        foreignField: "Channel",
+        foreignField: "channel",
         as: "subscribers",
       },
     },
@@ -441,7 +438,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
     },
   ]);
-
+  console.warn(channel, "channel");
   if (!channel?.length) {
     throw new ApiError(400, "Channel not found");
   }
