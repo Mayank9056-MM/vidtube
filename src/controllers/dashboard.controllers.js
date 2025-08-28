@@ -14,7 +14,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
     throw new ApiError(404, "username is required");
   }
 
-  const user = await User.findOne({username: username.trim()});
+  const user = await User.findOne({ username: username.trim() });
 
   if (!user) {
     throw new ApiError(400, "user with username not found");
@@ -90,20 +90,26 @@ const getChannelVideos = asyncHandler(async (req, res) => {
   const channelId = user._id;
 
   const allVideos = await Video.find({ owner: channelId });
+  const videosCount = await Video.countDocuments({ owner: channelId });
 
   if (!allVideos || allVideos.length === 0) {
     throw new ApiError(404, "No videos found for this channel");
   }
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { videos: allVideos },
-        "All videos fetched successfully"
-      )
-    );
+  if (videosCount === 0) {
+    throw new ApiError(400, "No video uploaded by user");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        videos: allVideos,
+        total: videosCount,
+      },
+      "All videos fetched successfully"
+    )
+  );
 });
 
 export { getChannelStats, getChannelVideos };

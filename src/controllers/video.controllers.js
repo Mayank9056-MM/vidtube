@@ -10,6 +10,10 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const publishVideo = asyncHandler(async (req, res) => {
   // take title and desciption from user
+  console.log(req.files)
+
+  let uploadVideo;
+  let thumbnail;
 
   try {
     const { title, description } = req.body;
@@ -31,8 +35,6 @@ const publishVideo = asyncHandler(async (req, res) => {
       throw new ApiError(400, "Video and thumbnail are required");
     }
 
-    let uploadVideo;
-
     try {
       uploadVideo = await uploadOnCloudinary(videoLocalPath);
       console.log("Upload on cloudinary uploadVideo", uploadVideo);
@@ -40,8 +42,6 @@ const publishVideo = asyncHandler(async (req, res) => {
       console.log("Error while uploading video", error);
       throw new ApiError(500, "Failed to upload video");
     }
-
-    let thumbnail;
 
     try {
       thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
@@ -72,7 +72,7 @@ const publishVideo = asyncHandler(async (req, res) => {
         new ApiResponse(201, createVideo, "video upload successfully on db")
       );
   } catch (error) {
-    console.log("video upload failed to db");
+    console.log("video upload failed to db",error);
 
     if (uploadVideo) {
       await deleteFromCloudinary(uploadVideo.public_id);
