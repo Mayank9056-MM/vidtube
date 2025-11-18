@@ -60,10 +60,7 @@ const publishVideo = asyncHandler(async (req, res) => {
       duration: uploadVideo?.duration,
     });
 
-    const createVideo = await Video.findById(video?._id).populate(
-      "owner",
-      "avatar username fullName"
-    );
+    const createVideo = await Video.findById(video?._id).populate("owner");
 
     if (!createVideo) {
       throw new ApiError(500, "something went wrong while uploading new video");
@@ -234,13 +231,13 @@ const getAllVideos = asyncHandler(async (req, res) => {
   // pagination
   const skip = (Number(page) - 1) * Number(limit);
 
-  const allVideo = await Video.find(filter).sort(sort).skip(skip).limit(limit);
+  const allVideo = await Video.find(filter).sort(sort).skip(skip).limit(limit).populate("owner","avatar username fullName");
   const total = await Video.countDocuments(filter);
 
   let userVideos = null;
 
   if (userId) {
-    userVideos = await Video.find({ user: userId });
+    userVideos = await Video.find({ user: userId }).populate("owner","avatar username fullName");
   }
 
   return res.status(200).json(
