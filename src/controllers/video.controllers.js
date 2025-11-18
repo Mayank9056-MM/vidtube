@@ -10,7 +10,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const publishVideo = asyncHandler(async (req, res) => {
   // take title and desciption from user
-  console.log(req.files)
+  console.log(req.files);
 
   let uploadVideo;
   let thumbnail;
@@ -60,7 +60,10 @@ const publishVideo = asyncHandler(async (req, res) => {
       duration: uploadVideo?.duration,
     });
 
-    const createVideo = await Video.findById(video?._id);
+    const createVideo = await Video.findById(video?._id).populate(
+      "owner",
+      "avatar username fullName"
+    );
 
     if (!createVideo) {
       throw new ApiError(500, "something went wrong while uploading new video");
@@ -72,7 +75,7 @@ const publishVideo = asyncHandler(async (req, res) => {
         new ApiResponse(201, createVideo, "video upload successfully on db")
       );
   } catch (error) {
-    console.log("video upload failed to db",error);
+    console.log("video upload failed to db", error);
 
     if (uploadVideo) {
       await deleteFromCloudinary(uploadVideo.public_id);
