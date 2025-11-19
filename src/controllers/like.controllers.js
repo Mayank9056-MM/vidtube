@@ -33,18 +33,19 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   if (existingLike) {
     // Unlike (remove document)
     await Like.findByIdAndDelete(existingLike._id);
-  }
+  } else {
+    isLiked = true;
+    // like on video
+    const likedVideo = await Like.create({
+      video: videoId,
+      likedBy: userId,
+    });
 
-  // like on video
-  const likedVideo = await Like.create({
-    video: videoId,
-    likedBy: userId,
-  });
+    const dbLikedVideo = await Like.findById(likedVideo._id);
 
-  const dbLikedVideo = await Like.findById(likedVideo._id);
-
-  if (!dbLikedVideo) {
-    throw new ApiError(500, "Something went wrong while liking Video");
+    if (!dbLikedVideo) {
+      throw new ApiError(500, "Something went wrong while liking Video");
+    }
   }
 
   const totalLikes = await Like.countDocuments({ video: videoId });
