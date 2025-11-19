@@ -28,13 +28,11 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     likedBy: userId,
   });
 
+  let isLiked = false;
+
   if (existingLike) {
     // Unlike (remove document)
-    const unlikedVideo = await Like.findByIdAndDelete(existingLike._id);
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, unlikedVideo, "Video unliked successfully"));
+    await Like.findByIdAndDelete(existingLike._id);
   }
 
   // like on video
@@ -49,9 +47,17 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong while liking Video");
   }
 
+  const totalLikes = await Like.countDocuments({ video: videoId });
+
   return res
-    .status(201)
-    .json(new ApiResponse(200, likedVideo, "Video liked successfully"));
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { isLiked, totalLikes },
+        "Video like toggle successfully"
+      )
+    );
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -169,4 +175,4 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     );
 });
 
-export { toggleVideoLike, toggleCommentLike, toggleTweetLike,getLikedVideos };
+export { toggleVideoLike, toggleCommentLike, toggleTweetLike, getLikedVideos };
