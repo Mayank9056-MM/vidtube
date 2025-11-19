@@ -165,9 +165,9 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     video: { $exists: true },
   }).populate("video");
 
-  if (likedVideos.length === 0) {
-    throw new ApiError(400, "No likes found");
-  }
+  // if (likedVideos.length === 0) {
+  //   throw new ApiError(400, "No likes found");
+  // }
 
   return res
     .status(200)
