@@ -109,10 +109,13 @@ const getVideoById = asyncHandler(async (req, res) => {
   // count likes
   const likeCount = await Like.countDocuments({ video: videoId });
 
+  const likedOrNot = await Like.exists({
+    video: videoId,
+    likedBy: req.user._id,
+  });
+
   // check if curr user like the video
-  const isLiked = req.user
-    ? await Like.exists({ video: videoId, likedBy: req.user._id })
-    : false;
+  const isLiked = req.user ? (likedOrNot ? true : false) : false;
 
   res.status(200).json(
     new ApiResponse(
