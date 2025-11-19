@@ -7,6 +7,7 @@ import {
   uploadOnCloudinary,
 } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { Like } from "../models/like.models.js";
 
 const publishVideo = asyncHandler(async (req, res) => {
   // take title and desciption from user
@@ -96,13 +97,34 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "video id not found");
   }
 
-  const video = await Video.findById(videoId);
+  const video = await Video.findById(videoId).populate(
+    "owner",
+    "avatar coverImage fullName username"
+  );
 
   if (!video) {
     throw new ApiError(404, "Video not found");
   }
 
-  res.status(200).json(new ApiResponse(200, video, "video fetch successfully"));
+  // count likes
+  const likeCount = await Like.countDocuments({ video: videoId });
+
+  // check if curr user like the video
+  const isLiked = req.user
+    ? await Like.exists({ video: videoId, likedBy: req.user._id })
+    : false;
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        ...video.toObject(),
+        likeCount,
+        isLiked,
+      },
+      "video fetch successfully"
+    )
+  );
 });
 
 const deletevideo = asyncHandler(async (req, res) => {
@@ -231,13 +253,20 @@ const getAllVideos = asyncHandler(async (req, res) => {
   // pagination
   const skip = (Number(page) - 1) * Number(limit);
 
-  const allVideo = await Video.find(filter).sort(sort).skip(skip).limit(limit).populate("owner","avatar username fullName");
+  const allVideo = await Video.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limit)
+    .populate("owner", "avatar username fullName");
   const total = await Video.countDocuments(filter);
 
   let userVideos = null;
 
   if (userId) {
-    userVideos = await Video.find({ user: userId }).populate("owner","avatar username fullName");
+    userVideos = await Video.find({ user: userId }).populate(
+      "owner",
+      "avatar username fullName"
+    );
   }
 
   return res.status(200).json(
