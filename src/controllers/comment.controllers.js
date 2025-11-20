@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.models.js";
+import { Like } from "../models/like.models.js";
+import mongoose from "mongoose";
 
 const addComment = asyncHandler(async (req, res) => {
   const { content } = req.body;
@@ -135,14 +137,69 @@ const getVideoComments = asyncHandler(async (req, res) => {
     throw new ApiError(400, "video id is required");
   }
 
+    const userId = req.user?._id
+    ? new mongoose.Types.ObjectId(req.user._id)
+    : null;
+
   const pageNumber = parseInt(page, 10);
   const limitNumber = parseInt(limit, 10);
 
-  const comments = await Comment.find({ video: videoId })
-    .sort({ createdAt: -1 })
-    .skip((pageNumber - 1) * limitNumber)
-    .limit(limitNumber)
-    .populate("owner", "username avatar");
+  const comments = await Comment.aggregate([
+    {
+      $match: { video: new mongoose.Types.ObjectId(videoId) },
+    },
+
+    { $sort: { createdAt: -1 } },
+
+    { $skip: (pageNumber - 1) * limitNumber },
+    { $limit: limitNumber },
+
+    // Join Owner
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        pipeline: [{ $project: { username: 1, avatar: 1 } }],
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+
+    // Join with Like collection for comment likes
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "comment",
+        as: "likes",
+      },
+    },
+
+    // Compute totalLikes + isCommentLiked
+    {
+      $addFields: {
+        totalLikes: { $size: "$likes" },
+        isCommentLiked: {
+          $cond: [
+            {
+              $in: [userId, "$likes.likedBy"],
+            },
+            true,
+            false,
+          ],
+        },
+      },
+    },
+
+    // Hide unwanted fields
+    {
+      $project: {
+        likes: 0, // remove likes array (not needed)
+        video: 0, // optional
+      },
+    },
+  ]);
 
   const totalComments = await Comment.countDocuments({ video: videoId });
 

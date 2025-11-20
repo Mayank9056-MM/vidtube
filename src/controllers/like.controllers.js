@@ -82,32 +82,37 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     likedBy: userId,
   });
 
+  let isCommentLiked = false;
+
   if (existingLike) {
     // Unlike (remove document)
-    const unlikedComment = await Like.findByIdAndDelete(existingLike._id);
+    await Like.findByIdAndDelete(existingLike._id);
+  } else {
+    // like on Comment
+    isCommentLiked = true;
+    const likedComment = await Like.create({
+      comment: commentId,
+      likedBy: userId,
+    });
 
-    return res
-      .status(200)
-      .json(
-        new ApiResponse(200, unlikedComment, "Comment unliked successfully")
-      );
+    const dbLikedComment = await Like.findById(likedComment._id);
+
+    if (!dbLikedComment) {
+      throw new ApiError(500, "Something went wrong while liking comment");
+    }
   }
 
-  // like on Comment
-  const likedComment = await Like.create({
-    comment: commentId,
-    likedBy: userId,
-  });
-
-  const dbLikedComment = await Like.findById(likedComment._id);
-
-  if (!dbLikedComment) {
-    throw new ApiError(500, "Something went wrong while liking comment");
-  }
+  const totalLikes = await Like.countDocuments({ comment: commentId });
 
   return res
     .status(201)
-    .json(new ApiResponse(200, likedComment, "Comment liked successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { isCommentLiked, totalLikes },
+        "Comment liked successfully"
+      )
+    );
 });
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
