@@ -127,4 +127,43 @@ const deleteTweet = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, deletedTweet, "tweet deleted successfully"));
 });
 
-export { createTweet, getUserTweets, updateTweet, deleteTweet };
+const getAllTweets = asyncHandler(async (req, res) => {
+  let { page = 1, limit = 10, sortBy = "-createdAt" } = req.query;
+
+  page = parseInt(page);
+  limit = parseInt(limit);
+
+  const skip = (page - 1) * limit;
+
+  const sortQuery = {};
+  if (sortBy.startsWith("-")) {
+    sortQuery[sortBy.substring(1)] = -1;
+  } else {
+    sortQuery[sortBy] = 1;
+  }
+
+  const tweets = await Tweet.find()
+    .populate("owner", "fullname username avatar")
+    .sort(sortQuery)
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Tweet.countDocuments();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        tweets,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      "All tweets fetched successfully"
+    )
+  );
+});
+
+
+export { createTweet, getUserTweets, updateTweet, deleteTweet,getAllTweets };
