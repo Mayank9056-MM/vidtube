@@ -50,16 +50,43 @@ const createTweet = asyncHandler(async (req, res) => {
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
-  const userTweets = await Tweet.find({ owner: req.user?._id }).sort({
-    createdAt: -1,
-  });
+  let { page = 1, limit = 10, sortBy = "-createdAt" } = req.query;
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(200, userTweets, "all user tweets fetched successfully")
-    );
+  page = parseInt(page);
+  limit = parseInt(limit);
+
+  const skip = (page - 1) * limit;
+
+  const sortQuery = {};
+  if (sortBy.startsWith("-")) {
+    sortQuery[sortBy.substring(1)] = -1;
+  } else {
+    sortQuery[sortBy] = 1;
+  }
+
+  const tweets = await Tweet.find({ owner: req.user?._id })
+    .populate("owner", "fullname username avatar")
+    .sort(sortQuery)
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Tweet.countDocuments({ owner: req.user._id });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        tweets,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      "All user tweets fetched successfully"
+    )
+  );
 });
+
 
 const updateTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
