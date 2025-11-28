@@ -7,6 +7,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Tweet } from "../models/tweet.models.js";
+import { Like } from "../models/like.models.js";
 
 const createTweet = asyncHandler(async (req, res) => {
   /*
@@ -86,7 +87,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
     )
   );
 });
-
 
 const updateTweet = asyncHandler(async (req, res) => {
   const { tweetId } = req.params;
@@ -175,13 +175,30 @@ const getAllTweets = asyncHandler(async (req, res) => {
     .skip(skip)
     .limit(limit);
 
+  // Add likes count for each tweet
+  const tweetsWithLikes = await Promise.all(
+    tweets.map(async (tweet) => {
+      const totalLikes = await Like.countDocuments({ tweet: tweet._id });
+      const isLiked = await Like.exists({
+        tweet: tweet._id,
+        likedBy: req.user?._id,
+      });
+
+      return {
+        ...tweet._doc,
+        totalLikes,
+        isLiked: Boolean(isLiked),
+      };
+    })
+  );
+
   const total = await Tweet.countDocuments();
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
-        tweets,
+        tweets: tweetsWithLikes,
         total,
         page,
         limit,
@@ -192,5 +209,4 @@ const getAllTweets = asyncHandler(async (req, res) => {
   );
 });
 
-
-export { createTweet, getUserTweets, updateTweet, deleteTweet,getAllTweets };
+export { createTweet, getUserTweets, updateTweet, deleteTweet, getAllTweets };
