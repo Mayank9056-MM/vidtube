@@ -170,7 +170,7 @@ const getAllTweets = asyncHandler(async (req, res) => {
   }
 
   const tweets = await Tweet.find()
-    .populate("owner", "fullname username avatar")
+    .populate("owner", "username avatar fullName")
     .sort(sortQuery)
     .skip(skip)
     .limit(limit);

@@ -136,30 +136,34 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     likedBy: userId,
   });
 
+  let isLiked = false;
+
   if (existingLike) {
     // Unlike (remove document)
+    isLiked = false;
     const unlikedTweet = await Like.findByIdAndDelete(existingLike._id);
-
-    return res
-      .status(200)
-      .json(new ApiResponse(200, unlikedTweet, "Tweet unliked successfully"));
+  } else {
+    // like on Tweet
+    isLiked = true;
+    const likedTweet = await Like.create({
+      tweet: tweetId,
+      likedBy: userId,
+    });
   }
 
-  // like on Tweet
-  const likedTweet = await Like.create({
-    tweet: tweetId,
-    likedBy: userId,
-  });
+  const totalLikes = (await Like.find({ tweet: tweetId })).length;
 
-  const dbLikedTweet = await Like.findById(likedTweet._id);
-
-  if (!dbLikedTweet) {
-    throw new ApiError(500, "Something went wrong while liking tweet");
-  }
+  console.log(totalLikes, "total likes");
 
   return res
     .status(201)
-    .json(new ApiResponse(200, likedTweet, "Tweet liked successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { tweetId, isLiked, totalLikes },
+        "Tweet liked toggle successfully"
+      )
+    );
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
