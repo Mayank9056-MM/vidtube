@@ -61,13 +61,34 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 const getSubscribedChannels = asyncHandler(async (req, res) => {
   const { subscriberId } = req.params;
 
-  const channels = await Subscription.find({
+  const subscriptions = await Subscription.find({
     subscriber: subscriberId,
-  }).populate("channel", "username email avatar");
+  }).populate("channel", "username email avatar coverImage");
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, channels, "subscribed channels fetched"));
+  // Add subscriber count to each channel
+  const channelsWithCounts = await Promise.all(
+    subscriptions.map(async (sub) => {
+      const count = await Subscription.countDocuments({
+        channel: sub.channel._id,
+      });
+
+      return {
+        ...sub.toObject(),
+        subscribers: count, // new field
+      };
+    })
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        totalSubs: subscriptions.length,
+        channels: channelsWithCounts,
+      },
+      "Subscribed channels fetched"
+    )
+  );
 });
 
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {

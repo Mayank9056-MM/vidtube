@@ -136,6 +136,8 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     likedBy: userId,
   });
 
+  console.log(existingLike,"existing like")
+
   let isLiked = false;
 
   if (existingLike) {
