@@ -2,6 +2,7 @@ import express from "express";
 import { verifyAuth } from "../middlewares/verifyAuth.js";
 import {
   getSubscribedChannels,
+  getSubscriptionStatus,
   getUserChannelSubscribers,
   toggleSubscription,
 } from "../controllers/subscription.controllers.js";
@@ -17,5 +18,8 @@ susbscriptionRouter
 susbscriptionRouter
   .route("/subscribers/:channelId")
   .get(verifyAuth, getUserChannelSubscribers);
+susbscriptionRouter
+  .route("/status/:username")
+  .get(verifyAuth, getSubscriptionStatus);
 
 export default susbscriptionRouter;

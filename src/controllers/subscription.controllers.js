@@ -103,4 +103,34 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, subscribers, "subscribers fetched"));
 });
 
-export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
+const getSubscriptionStatus = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  const { subscriber } = req.query;
+
+  const channel = await User.findOne({ username });
+
+  if (!channel) throw new ApiError(404, "Channel not found");
+
+  const existing = await Subscription.exists({
+    channel: channel._id,
+    subscriber,
+  });
+
+  const totalSubscribers = await Subscription.countDocuments({
+    channel: channel._id,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      isSubscribed: !!existing,
+      totalSubscribers,
+    })
+  );
+});
+
+export {
+  toggleSubscription,
+  getUserChannelSubscribers,
+  getSubscribedChannels,
+  getSubscriptionStatus,
+};
