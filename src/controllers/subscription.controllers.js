@@ -61,6 +61,11 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
 const getSubscribedChannels = asyncHandler(async (req, res) => {
   const { subscriberId } = req.params;
+  console.log(subscriberId);
+
+  if(!subscriberId){
+    throw new ApiError(400, "Subscriber id is required")
+  }
 
   const subscriptions = await Subscription.find({
     subscriber: subscriberId,
@@ -70,7 +75,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   const channelsWithCounts = await Promise.all(
     subscriptions.map(async (sub) => {
       const count = await Subscription.countDocuments({
-        channel: sub.channel._id,
+        channel: sub.channel,
       });
 
       return {
