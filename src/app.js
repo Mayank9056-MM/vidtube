@@ -72,6 +72,7 @@ app.use("/api/v1/subscriptions", susbscriptionRouter);
 app.use("/api/v1/playlists", playlistRouter);
 app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/dashboards", dashboardRouter);
+app.use("/api/v1/health", healthCheckRouter);
 
 app.use(errorHandler);
 
