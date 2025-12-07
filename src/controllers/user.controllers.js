@@ -503,6 +503,100 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
+const changeUserPassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (!(await user.comparePassword(currentPassword))) {
+    throw new ApiError(401, "Current password is incorrect");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json(new ApiResponse(200, "Password changed successfully"));
+});
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  if (!user) {
+    throw new ApiError(404, "No user found with this email");
+  }
+
+  const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
+
+  await sendMail(
+    user.email,
+    "Password Reset Request",
+    `Your password reset token is: ${resetToken}`,
+    `
+  <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+    <h2 style="color: #ff6600;">Password Reset Request</h2>
+    <p>Hello ${user.fullName || "User"},</p>
+    <p>You recently requested to reset your password. Please click the button below to reset it:</p>
+
+    <p style="text-align: center; margin: 20px 0;">
+      <a href="${process.env.CLIENT_URL}/reset-password/${resetToken}"
+         style="background-color: #ff6600; color: #fff; padding: 12px 20px;
+                text-decoration: none; border-radius: 6px; font-weight: bold;">
+        Reset Password
+      </a>
+    </p>
+
+    <p>If the button above doesn’t work, copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; color: #0066cc;">
+      ${process.env.CLIENT_URL}/reset-password/${resetToken}
+    </p>
+
+    <p><b>Note:</b> This link is valid for the next 15 minutes. If you didn’t request this, you can safely ignore this email.</p>
+    
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    <p style="font-size: 12px; color: #777;">
+      This email was sent by ${process.env.APP_NAME || "Our App"}.  
+      If you need help, please contact support.
+    </p>
+  </div>
+  `
+  );
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, "Password reset instructions sent to email"));
+});
+
+/**
+ * Reset password
+ * @route POST /api/v1/users/reset-password/:token
+ */
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const user = await User.findOne({
+    resetPasswordToken: crypto.createHash("sha256").update(token).digest("hex"),
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new ApiError(400, "Invalid or expired reset token");
+  }
+
+  user.password = password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  res.status(200).json(new ApiResponse(200, "Password reset successful"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -515,4 +609,7 @@ export {
   updateUserCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  forgotPassword,
+  resetPassword,
+  changeUserPassword
 };

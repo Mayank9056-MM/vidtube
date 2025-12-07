@@ -2,6 +2,8 @@ import express from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
   changeCurrentPassword,
+  changeUserPassword,
+  forgotPassword,
   getCurrentUser,
   getUserChannelProfile,
   getWatchHistory,
@@ -9,6 +11,7 @@ import {
   logoutUser,
   refreshAccessToken,
   registerUser,
+  resetPassword,
   updateAccountDetails,
   updateUserAvatar,
   updateUserCoverImage,
@@ -49,5 +52,8 @@ userRouter
   .patch(verifyAuth, upload.single("coverImage"), updateUserCoverImage);
 userRouter.route("/c/:username").get(verifyAuth, getUserChannelProfile);
 userRouter.route("/history").get(verifyAuth, getWatchHistory);
+userRouter.route("/change-password").get(verifyAuth, changeUserPassword);
+userRouter.route("/forgot-password").get(forgotPassword);
+userRouter.route("/reset-password/:token").get(resetPassword);
 
 export default userRouter;
