@@ -2,6 +2,7 @@ import express from "express";
 import { verifyAuth } from "../middlewares/verifyAuth.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {
+  addView,
   deletevideo,
   getAllVideos,
   getVideoById,
@@ -36,5 +37,6 @@ videoRouter
   .route("/toggle-video/:videoId")
   .patch(verifyAuth, togglePublishStatus);
 videoRouter.route("/all-videos").get(verifyAuth, getAllVideos);
+videoRouter.route("/add-view/:videoId").post(verifyAuth, addView);
 
 export default videoRouter;

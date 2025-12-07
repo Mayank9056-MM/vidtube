@@ -8,6 +8,7 @@ import {
 } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Like } from "../models/like.models.js";
+import redis from "../config/redis.js";
 
 const publishVideo = asyncHandler(async (req, res) => {
   // take title and desciption from user
@@ -290,6 +291,43 @@ const getAllVideos = asyncHandler(async (req, res) => {
   );
 });
 
+
+/**
+ * Increment view count for a video
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @returns {Promise<void>} - Returns a promise that resolves with no value
+ * @throws {ApiError} - Throws an error if video id is not provided
+ */
+const addView = async (req, res) => {
+  const videoId = req.params.videoId;
+  const userId = req.user._id.toString();
+
+  if(!(videoId && userId)){
+    throw new ApiError(400, "video id is required");
+  }
+
+  const redisKey = `view:${videoId}:${userId}`;
+
+  // Check if user already viewed the video
+  const alreadyViewed = await redis.get(redisKey);
+
+  if (alreadyViewed) {
+    return res.status(200).json(new ApiResponse(200,"View already counted"));
+  }
+
+  // Set redis flag for 12 hours
+  await redis.set(redisKey, "true", "EX", 60 * 60 * 12);
+
+  // Increment video in MongoDB
+  await Video.findByIdAndUpdate(videoId, {
+    $inc: { views: 1 }
+  });
+
+  res.status(200).json(new ApiResponse(200,"View counted"));
+};
+
+
 export {
   publishVideo,
   getVideoById,
@@ -297,4 +335,5 @@ export {
   updateVideo,
   togglePublishStatus,
   getAllVideos,
+  addView
 };
