@@ -54,6 +54,6 @@ userRouter.route("/c/:username").get(verifyAuth, getUserChannelProfile);
 userRouter.route("/history").get(verifyAuth, getWatchHistory);
 userRouter.route("/change-password").post(verifyAuth, changeUserPassword);
 userRouter.route("/forgot-password").post(forgotPassword);
-userRouter.route("/reset-password/:token").get(resetPassword);
+userRouter.route("/reset-password/:token").post(resetPassword);
 
 export default userRouter;

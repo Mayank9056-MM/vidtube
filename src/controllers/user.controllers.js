@@ -10,6 +10,8 @@ import {
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { sendMail } from "../utils/mailService.js";
+import crypto from "crypto";
 
 // helper functions
 
@@ -523,7 +525,13 @@ const changeUserPassword = asyncHandler(async (req, res) => {
 });
 
 const forgotPassword = asyncHandler(async (req, res) => {
+  console.log(req.body);
   const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
   const user = await User.findOne({ email: email.toLowerCase() });
 
   if (!user) {
@@ -580,6 +588,10 @@ const resetPassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
 
+  if (!token || !password) {
+    throw new ApiError(400, "Token and password is required");
+  }
+
   const user = await User.findOne({
     resetPasswordToken: crypto.createHash("sha256").update(token).digest("hex"),
     resetPasswordExpire: { $gt: Date.now() },
@@ -611,5 +623,5 @@ export {
   getWatchHistory,
   forgotPassword,
   resetPassword,
-  changeUserPassword
+  changeUserPassword,
 };
