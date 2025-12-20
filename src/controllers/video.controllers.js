@@ -154,7 +154,9 @@ const deletevideo = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { title, description } = req.body;
-
+  
+  console.log(res.body,"res body");
+  console.log(req.params.videoId,"videoId");
   if (!videoId) {
     throw new ApiError(400, "Video id not found");
   }
@@ -227,6 +229,8 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
 
+  console.log("userId", userId);
+
   let filter = {};
 
   if (query) {
@@ -264,14 +268,18 @@ const getAllVideos = asyncHandler(async (req, res) => {
     .populate("owner", "avatar username fullName");
   const total = await Video.countDocuments(filter);
 
+  console.log(allVideo, "All video");
+
   let userVideos = null;
 
   if (userId) {
-    userVideos = await Video.find({ user: userId }).populate(
+    userVideos = await Video.find({ owner: userId }).populate(
       "owner",
       "avatar username fullName"
     );
   }
+
+  console.log("uservideos =>", userVideos);
 
   return res.status(200).json(
     new ApiResponse(
@@ -287,6 +295,69 @@ const getAllVideos = asyncHandler(async (req, res) => {
         },
       },
       "All videos fetched successfully"
+    )
+  );
+});
+
+const getUserAllVideos = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
+  let filter = {};
+
+  if (query) {
+    filter.$or = [
+      {
+        title: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+      {
+        description: {
+          $regex: query,
+          $options: "i",
+        },
+      },
+    ];
+  }
+
+  if (userId) {
+    filter.owner = userId;
+  }
+
+  // sorting
+  const sort = {};
+  if (sortBy) {
+    sort[sortBy] = sortType === "asc" ? 1 : -1;
+  } else {
+    sort.createdAt = -1; // newest first
+  }
+
+  // pagination
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const userVideos = await Video.find(filter)
+    .sort(sort)
+    .skip(skip)
+    .limit(limit)
+    .populate("owner", "avatar username fullName");
+  const total = await Video.countDocuments(filter);
+
+  console.log("uservideos =>", userVideos);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        userVideos,
+        pagination: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+      "All user videos fetched successfully"
     )
   );
 });
@@ -333,6 +404,7 @@ const addView = async (req, res) => {
 export {
   publishVideo,
   getVideoById,
+  getUserAllVideos,
   deletevideo,
   updateVideo,
   togglePublishStatus,

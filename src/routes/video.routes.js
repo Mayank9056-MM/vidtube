@@ -5,6 +5,7 @@ import {
   addView,
   deletevideo,
   getAllVideos,
+  getUserAllVideos,
   getVideoById,
   publishVideo,
   togglePublishStatus,
@@ -37,6 +38,7 @@ videoRouter
   .route("/toggle-video/:videoId")
   .patch(verifyAuth, togglePublishStatus);
 videoRouter.route("/all-videos").get(verifyAuth, getAllVideos);
+videoRouter.route("/user-videos").get(verifyAuth, getUserAllVideos);
 videoRouter.route("/add-view/:videoId").post(verifyAuth, addView);
 
 export default videoRouter;
