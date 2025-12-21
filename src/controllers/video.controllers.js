@@ -154,9 +154,9 @@ const deletevideo = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   const { title, description } = req.body;
-  
-  console.log(res.body,"res body");
-  console.log(req.params.videoId,"videoId");
+
+  console.log(res.body, "res body");
+  console.log(req.params.videoId, "videoId");
   if (!videoId) {
     throw new ApiError(400, "Video id not found");
   }
@@ -231,7 +231,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   console.log("userId", userId);
 
-  let filter = {};
+  let filter = { isPublished: true };
 
   if (query) {
     filter.$or = [
