@@ -381,31 +381,27 @@ const addView = async (req, res) => {
 
   let alreadyViewed = false;
 
+  await User.updateOne({ _id: userId }, { $pull: { watchHistory: videoId } });
+
+  await User.updateOne(
+    { _id: userId },
+    {
+      $push: {
+        watchHistory: {
+          $each: [videoId],
+          $position: 0,
+          $slice: 100,
+        },
+      },
+    }
+  );
+
   // Check if user already viewed the video
   if (redis) {
     alreadyViewed = await redis.get(redisKey);
   }
 
   if (alreadyViewed) {
-    const updateHistory = await User.findByIdAndUpdate(
-      userId,
-      {
-        $pull: { watchHistory: videoId },
-        $push: {
-          watchHistory: {
-            $each: [videoId],
-            $position: 0,
-            $slice: 100,
-          },
-        },
-      },
-      { new: true }
-    );
-
-    if (!updateHistory) {
-      throw new ApiError(400, "Failed to update watch history");
-    }
-
     return res.status(200).json(new ApiResponse(200, "View already counted"));
   }
 
@@ -419,24 +415,7 @@ const addView = async (req, res) => {
     $inc: { views: 1 },
   });
 
-  const watchHistoryUpdated = await User.findByIdAndUpdate(
-    req.user?._id,
-    {
-      $pull: { watchHistory: videoId }, // remove if exists
-      $push: {
-        watchHistory: {
-          $each: [videoId],
-          $position: 0, // latest first
-          $slice: 100, // keep only last 100
-        },
-      },
-    },
-    { new: true }
-  );
-
-  if (!watchHistoryUpdated) {
-    throw new ApiError(400, "watch history not updated successfully");
-  }
+  await User.updateOne({ _id: userId }, { $pull: { watchHistory: videoId } });
 
   res.status(200).json(new ApiResponse(200, "View counted"));
 };
